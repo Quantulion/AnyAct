@@ -1,38 +1,48 @@
-﻿using AnyAct.Exceptions;
+﻿using System.Collections.Concurrent;
+using System.Reflection;
+using AnyAct.Exceptions;
 using AnyAct.Interfaces;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace AnyAct.Implementations;
 
 public class ActionExecutor<TResult> : IActionExecutor<TResult>
 {
-    private readonly IServiceProvider _serviceProvider;
+    private readonly IServiceScopeFactory _serviceScopeFactory;
+    private readonly ConcurrentDictionary<(Type, Type, Type), Type> _handlerTypeCache = new();
+    private readonly ConcurrentDictionary<Type, MethodInfo> _handleMethodCache = new();
 
-    public ActionExecutor(IServiceProvider serviceProvider)
+    public ActionExecutor(IServiceScopeFactory serviceScopeFactory)
     {
-        _serviceProvider = serviceProvider;
+        _serviceScopeFactory = serviceScopeFactory;
     }
 
-    public async Task<TResult> Execute(IActionData value, CancellationToken ct = default)
+    public async Task<TResult> Execute(object value, CancellationToken ct = default)
     {
         return await Execute(value, typeof(IActionHandler<,>), ct);
     }
 
-    public async Task<TResult> Execute(IActionData value, Type customHandlerType, CancellationToken ct = default)
+    public async Task<TResult> Execute(object value, Type customHandlerType, CancellationToken ct = default)
     {
-        var resultType = typeof(TResult);
-        var actionType = value.GetType();
+        using var scope = _serviceScopeFactory.CreateScope();
+        var serviceProvider = scope.ServiceProvider;
         
-        var handlerType = customHandlerType.MakeGenericType(resultType, actionType);
+        var actionType = value.GetType();
+        var resultType = typeof(TResult);
 
-        var handler = _serviceProvider.GetService(handlerType);
+        var handlerTypeKey = (customHandlerType, actionType, resultType);
+        var handlerType = _handlerTypeCache.GetOrAdd(handlerTypeKey, _ => customHandlerType.MakeGenericType(actionType, resultType));
+
+        var handler = serviceProvider.GetService(handlerType);
 
         if (handler is null)
         {
             throw new IncompatibleActionException(value.GetType());
         }
 
-        var method = handler.GetType().GetMethod("Handle");
-        var task = (Task<TResult>)method!.Invoke(handler, new object[]{value, ct})!;
+        var method = _handleMethodCache.GetOrAdd(handlerType, _ => handler.GetType().GetMethod("Handle")!);
+
+        var task = (Task<TResult>)method.Invoke(handler, new[]{value, ct})!;
         return await task;
     }
 }

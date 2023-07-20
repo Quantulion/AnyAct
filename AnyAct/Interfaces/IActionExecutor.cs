@@ -2,6 +2,6 @@
 
 public interface IActionExecutor<TResult>
 {
-    Task<TResult> Execute(IActionData value, CancellationToken ct = default);
-    Task<TResult> Execute(IActionData value, Type customHandlerType, CancellationToken ct = default);
+    Task<TResult> Execute(object value, CancellationToken ct = default);
+    Task<TResult> Execute(object value, Type customHandlerType, CancellationToken ct = default);
 }

@@ -22,10 +22,10 @@ public static class ServiceCollectionExtensions
             .ToList()
             .ForEach(t =>
             {
-                var resultType = t.GetInterface(customHandlerType.Name)!.GenericTypeArguments[0];
-                var modelType = t.GetInterface(customHandlerType.Name)!.GenericTypeArguments[1];
+                var modelType = t.GetInterface(customHandlerType.Name)!.GenericTypeArguments[0];
+                var resultType = t.GetInterface(customHandlerType.Name)!.GenericTypeArguments[1];
                 services.AddTransient(
-                    customHandlerType.MakeGenericType(resultType, modelType), t);
+                    customHandlerType.MakeGenericType(modelType, resultType), t);
                 
                 resultTypes.Add(resultType);
             });
@@ -38,7 +38,7 @@ public static class ServiceCollectionExtensions
             var interfaceToRegister = handlerExecutorInterfaceType.MakeGenericType(resultType);
             var typeToRegister = handlerExecutorType.MakeGenericType(resultType);
 
-            services.AddTransient(interfaceToRegister, typeToRegister);
+            services.AddSingleton(interfaceToRegister, typeToRegister);
         }
     }
 }
