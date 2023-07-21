@@ -2,8 +2,8 @@
 
 internal sealed class CustomActionHandler : ICustomActionHandler<MyCustomAction>
 {
-    public async Task<MyResult> Handle(MyCustomAction value, CancellationToken ct = default)
+    public Task<MyResult> Handle(MyCustomAction value, CancellationToken ct = default)
     {
-        return new MyResult();
+        return Task.FromResult(new MyResult());
     }
 }
