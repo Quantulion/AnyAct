@@ -36,7 +36,7 @@ internal class ActionExecutor : IActionExecutor
 
         var handler = serviceProvider.GetRequiredService(handlerType);
 
-        var method = _handleMethodCache.GetOrAdd(handlerType, _ => handlerType.GetMethod("Handle")!);
+        var method = _handleMethodCache.GetOrAdd(handlerType, _ => handler.GetType().GetMethod("Handle")!);
 
         var task = (Task<TResult>)method.Invoke(handler, new[]{value, ct})!;
         return await task;
