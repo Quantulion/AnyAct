@@ -1,5 +1,6 @@
 ﻿using AnyAct.Implementations;
 using AnyAct.Interfaces;
+using AnyAct.Utils;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace AnyAct.Extensions;
@@ -22,13 +23,16 @@ public static class ServiceCollectionExtensions
             .ToList()
             .ForEach(t =>
             {
-                var resultType = t.GetInterface(typeof(IActionHandler<,>).Name)!.GenericTypeArguments[1];
+                var actionHandlerInterface = t.GetInterface(typeof(IActionHandler<,>).Name)!;
+                var actionModelType = actionHandlerInterface.GenericTypeArguments[0];
+                var resultType = actionHandlerInterface.GenericTypeArguments[1];
                 
                 var handlerInterface = t.GetInterface(customHandlerType.Name)!;
                 
                 services.AddTransient(handlerInterface, t);
                 
                 resultTypes.Add(resultType);
+                ActionHandlerCache.Cache.Add((actionModelType, customHandlerType), handlerInterface);
             });
 
         var handlerExecutorInterfaceType = typeof(IActionExecutor<>);
@@ -41,5 +45,7 @@ public static class ServiceCollectionExtensions
 
             services.AddSingleton(interfaceToRegister, typeToRegister);
         }
+
+        services.AddSingleton<IActionHandlerProvider, ActionHandlerProvider>();
     }
 }
