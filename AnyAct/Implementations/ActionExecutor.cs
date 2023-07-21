@@ -4,7 +4,7 @@ using AnyAct.Interfaces;
 
 namespace AnyAct.Implementations;
 
-internal class ActionExecutor<TResult> : IActionExecutor<TResult>
+internal class ActionExecutor : IActionExecutor
 {
     private readonly IActionHandlerProvider _actionHandlerProvider;
     private readonly ConcurrentDictionary<Type, MethodInfo> _handleMethodCache = new();
@@ -14,12 +14,12 @@ internal class ActionExecutor<TResult> : IActionExecutor<TResult>
         _actionHandlerProvider = actionHandlerProvider;
     }
 
-    public async Task<TResult> Execute(object value, CancellationToken ct = default)
+    public async Task<TResult> Execute<TResult>(object value, CancellationToken ct = default)
     {
-        return await Execute(value, typeof(IActionHandler<,>), ct);
+        return await Execute<TResult>(value, typeof(IActionHandler<,>), ct);
     }
 
-    public async Task<TResult> Execute(object value, Type customHandlerType, CancellationToken ct = default)
+    public async Task<TResult> Execute<TResult>(object value, Type customHandlerType, CancellationToken ct = default)
     {
         var actionType = value.GetType();
 
