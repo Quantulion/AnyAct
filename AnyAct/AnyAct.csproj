@@ -5,7 +5,7 @@
         <ImplicitUsings>enable</ImplicitUsings>
         <Nullable>enable</Nullable>
         <PackageId>AnyAct</PackageId>
-        <Version>0.0.7</Version>
+        <Version>0.0.8</Version>
         <Authors>Chernikov Anatoly</Authors>
         <PackageTags>handlers,mediator</PackageTags>
         <Description>Mediator with support of runtime request types</Description>
@@ -21,6 +21,11 @@
 
     <ItemGroup>
         <None Include="../Readme.md" Pack="true" PackagePath="\"/>
+    </ItemGroup>
+    
+    <ItemGroup>
+        <InternalsVisibleTo Include="AnyAct.UnitTests" />
+        <InternalsVisibleTo Include="AnyAct.IntegrationTests" />
     </ItemGroup>
 
 </Project>

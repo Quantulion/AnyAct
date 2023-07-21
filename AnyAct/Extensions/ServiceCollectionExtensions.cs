@@ -24,7 +24,12 @@ public static class ServiceCollectionExtensions
                 var actionHandlerInterface = t.GetInterface(typeof(IActionHandler<,>).Name)!;
                 var actionModelType = actionHandlerInterface.GenericTypeArguments[0];
                 
-                var handlerInterface = t.GetInterface(customHandlerType.Name)!;
+                var handlerInterface = t.GetInterface(customHandlerType.Name);
+
+                if (handlerInterface is null)
+                {
+                    return;
+                }
                 
                 services.AddTransient(handlerInterface, t);
                 
