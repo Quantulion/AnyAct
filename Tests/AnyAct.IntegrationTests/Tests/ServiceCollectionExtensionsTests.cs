@@ -8,7 +8,7 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace AnyAct.IntegrationTests.Tests;
 
-public class ServiceCollectionExtensionsTests
+public class ServiceCollectionExtensionsTests : IAsyncLifetime
 {
     private readonly IServiceCollection _services;
 
@@ -76,5 +76,16 @@ public class ServiceCollectionExtensionsTests
         var actionExecutor = serviceProvider.GetService<IActionExecutor>();
         actionExecutor.Should().NotBeNull();
         actionExecutor.Should().BeOfType<ActionExecutor>();
+    }
+
+    public Task InitializeAsync()
+    {
+        return Task.CompletedTask;
+    }
+
+    public Task DisposeAsync()
+    {
+        ActionHandlerCache.Cache.Clear();
+        return Task.CompletedTask;
     }
 }
