@@ -32,6 +32,5 @@ public static class ServiceCollectionExtensions
             });
 
         services.AddSingleton<IActionExecutor, ActionExecutor>();
-        services.AddSingleton<IActionHandlerProvider, ActionHandlerProvider>();
     }
 }
