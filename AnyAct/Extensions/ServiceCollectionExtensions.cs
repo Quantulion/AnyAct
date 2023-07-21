@@ -22,10 +22,11 @@ public static class ServiceCollectionExtensions
             .ToList()
             .ForEach(t =>
             {
-                var modelType = t.GetInterface(customHandlerType.Name)!.GenericTypeArguments[0];
-                var resultType = t.GetInterface(customHandlerType.Name)!.GenericTypeArguments[1];
-                services.AddTransient(
-                    customHandlerType.MakeGenericType(modelType, resultType), t);
+                var resultType = t.GetInterface(typeof(IActionHandler<,>).Name)!.GenericTypeArguments[1];
+                
+                var handlerInterface = t.GetInterface(customHandlerType.Name)!;
+                
+                services.AddTransient(handlerInterface, t);
                 
                 resultTypes.Add(resultType);
             });
