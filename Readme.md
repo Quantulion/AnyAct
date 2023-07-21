@@ -9,6 +9,22 @@ AnyAct is a flexible, lightweight library for .NET designed to simplify the proc
 - **Easy Integration**: AnyAct works smoothly with your existing dependency injection setup, ensuring you can integrate it into your projects without hassle.
 - **Extensible Design**: Built with extensibility in mind, AnyAct allows you to easily extend its functionality to meet your specific application needs.
 
+## Differences with MediatR
+
+While MediatR is a great library for implementing the Mediator pattern, it requires you to know the type of requests at compile time. AnyAct offers a more flexible approach by allowing you to determine the type of request at runtime. This flexibility makes AnyAct a powerful tool for handling a variety of scenarios where the request type cannot be determined at compile time. For example:
+
+```csharp
+public async Task<ExecutorResult> ExecuteAction(MyAction action, CancellationToken ct)
+{
+    // Some preprocessing...
+    
+    var genericActionType = typeof(MyAction<>).MakeGenericType(modelType);
+    var genericAction = Activator.CreateInstance(genericActionType, action)!;
+
+    return await _actionExecutor.Execute<ExecutorResult>(genericAction, ct);
+}
+```
+
 ## Getting Started
 
 To start using AnyAct, you need to install the package and register it in your application's startup configuration.
