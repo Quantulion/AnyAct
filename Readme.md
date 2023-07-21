@@ -1,8 +1,4 @@
-﻿Sure, here's a sample `README.md` that you can use as a starting point for your project:
-
----
-
-# AnyAct
+﻿# AnyAct
 
 AnyAct is a flexible, lightweight library for .NET designed to simplify the process of handling different types of actions in a dynamic way at runtime. Modeled after the Mediator pattern, it allows your application to dispatch requests to the correct handler without the need to know the request type at compile time.
 
