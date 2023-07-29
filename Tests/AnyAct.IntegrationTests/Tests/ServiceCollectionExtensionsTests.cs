@@ -29,7 +29,7 @@ public class ServiceCollectionExtensionsTests : IAsyncLifetime
         // Check that each handler is correctly registered.
         foreach (var pair in ActionHandlerCache.Cache)
         {
-            var handler = serviceProvider.GetService(pair.Value);
+            var handler = serviceProvider.GetService(pair.Value.ServiceType);
             handler.Should().NotBeNull();
             var actionType = pair.Key.Item1;
             
@@ -64,7 +64,7 @@ public class ServiceCollectionExtensionsTests : IAsyncLifetime
 
         foreach (var pair in ActionHandlerCache.Cache)
         {
-            var handler = serviceProvider.GetService(pair.Value);
+            var handler = serviceProvider.GetService(pair.Value.ServiceType);
             handler.Should().NotBeNull();
             var actionType = pair.Key.Item1;
 

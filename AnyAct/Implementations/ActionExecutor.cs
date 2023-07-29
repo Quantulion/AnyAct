@@ -1,6 +1,4 @@
-﻿using System.Collections.Concurrent;
-using System.Reflection;
-using AnyAct.Exceptions;
+﻿using AnyAct.Exceptions;
 using AnyAct.Interfaces;
 using AnyAct.Utils;
 using Microsoft.Extensions.DependencyInjection;
@@ -10,7 +8,6 @@ namespace AnyAct.Implementations;
 internal class ActionExecutor : IActionExecutor
 {
     private readonly IServiceScopeFactory _serviceScopeFactory;
-    private readonly ConcurrentDictionary<Type, MethodInfo> _handleMethodCache = new();
 
     public ActionExecutor(IServiceScopeFactory serviceScopeFactory)
     {
@@ -26,19 +23,17 @@ internal class ActionExecutor : IActionExecutor
     {
         using var scope = _serviceScopeFactory.CreateScope();
         var serviceProvider = scope.ServiceProvider;
-        
+
         var actionType = value.GetType();
-        
-        if (!ActionHandlerCache.Cache.TryGetValue((actionType, customHandlerType), out var handlerType))
+
+        if (!ActionHandlerCache.Cache.TryGetValue((actionType, customHandlerType), out var cachedInfo))
         {
             throw new IncompatibleActionException(actionType);
         }
 
-        var handler = serviceProvider.GetRequiredService(handlerType);
+        var handler = serviceProvider.GetRequiredService(cachedInfo.ServiceType);
 
-        var method = _handleMethodCache.GetOrAdd(handlerType, _ => handler.GetType().GetMethod("Handle")!);
-
-        var task = (Task<TResult>)method.Invoke(handler, new[]{value, ct})!;
+        var task = (Task<TResult>)cachedInfo.HandleMethodInfo.Invoke(handler, new[] { value, ct })!;
         return await task;
     }
 }

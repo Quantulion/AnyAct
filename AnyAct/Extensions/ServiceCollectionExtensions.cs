@@ -5,35 +5,47 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace AnyAct.Extensions;
 
-public static class ServiceCollectionExtensions
+public static class ServicesConfiguration
 {
     public static void AddAnyAct<TAssemblyMarker>(this IServiceCollection services)
     {
         var handlerGenericType = typeof(IActionHandler<,>);
         services.AddAnyAct<TAssemblyMarker>(handlerGenericType);
     }
-    
+
     public static void AddAnyAct<TAssemblyMarker>(this IServiceCollection services, Type customHandlerType)
     {
+        var genericHandlerType = typeof(IActionHandler<,>);
+
         typeof(TAssemblyMarker).Assembly.GetTypes()
             .Where(t => t.IsAssignableTo(typeof(IActionHandler)) &&
                         t is { IsAbstract: false, IsInterface: false })
             .ToList()
             .ForEach(t =>
             {
-                var actionHandlerInterface = t.GetInterface(typeof(IActionHandler<,>).Name)!;
-                var actionModelType = actionHandlerInterface.GenericTypeArguments[0];
-                
-                var handlerInterface = t.GetInterface(customHandlerType.Name);
+                var implementedActionHandlerInterfaces = t.GetInterfaces()
+                    .Where(i => i.IsGenericType && i.GetGenericTypeDefinition() == customHandlerType);
 
-                if (handlerInterface is null)
+                foreach (var interfaceType in implementedActionHandlerInterfaces)
                 {
-                    return;
+                    services.AddTransient(interfaceType, t);
+
+                    var actionHandlerInterfaces = interfaceType.GetGenericTypeDefinition() == genericHandlerType
+                        ? new List<Type>() {interfaceType}
+                        : interfaceType
+                            .GetInterfaces()
+                            .Where(i => i.IsGenericType && i.GetGenericTypeDefinition() == genericHandlerType)
+                            .ToList();
+
+                    foreach (var actionHandlerInterface in actionHandlerInterfaces)
+                    {
+                        var actionModelType = actionHandlerInterface.GenericTypeArguments[0];
+
+                        var method = actionHandlerInterface.GetMethod("Handle")!;
+
+                        ActionHandlerCache.Cache.Add((actionModelType, customHandlerType), (interfaceType, method));
+                    }
                 }
-                
-                services.AddTransient(handlerInterface, t);
-                
-                ActionHandlerCache.Cache.Add((actionModelType, customHandlerType), handlerInterface);
             });
 
         services.AddSingleton<IActionExecutor, ActionExecutor>();
