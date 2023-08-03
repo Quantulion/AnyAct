@@ -16,7 +16,7 @@ internal class ActionExecutor : IActionExecutor
 
     public async Task<TResult> Execute<TResult>(object value, CancellationToken ct = default)
     {
-        return await Execute<TResult>(value, typeof(IActionHandler<,>), ct);
+        return await Execute<TResult>(value, typeof(IActionHandler<,>), ct).ConfigureAwait(false);
     }
 
     public async Task<TResult> Execute<TResult>(object value, Type customHandlerType, CancellationToken ct = default)
@@ -34,6 +34,6 @@ internal class ActionExecutor : IActionExecutor
         var handler = serviceProvider.GetRequiredService(cachedInfo.ServiceType);
 
         var task = (Task<TResult>)cachedInfo.HandleMethodInfo.Invoke(handler, new[] { value, ct })!;
-        return await task;
+        return await task.ConfigureAwait(false);
     }
 }
